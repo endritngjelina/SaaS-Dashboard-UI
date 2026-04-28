@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Premium Workspace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism Container */
+        .dashboard-container {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Floating Navigation */
+        .nav-bar {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 12px 24px;
+            display: flex;
+            gap: 20px;
+            z-index: 1000;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .nav-bar:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 100px 20px 20px;
+            transform: translateX(0);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-240px);
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -40px;
+            top: 120px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .sidebar-section {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+            padding-left: 16px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 4px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .sidebar-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 0;
+            background: white;
+            border-radius: 2px;
+            transition: height 0.3s ease;
+        }
+
+        .sidebar-item.active::before {
+            height: 20px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 100px 40px 40px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .main-content.expanded {
+            margin-left: 40px;
+        }
+
+        /* Header */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: white;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), transparent, rgba(255, 255, 255, 0.3));
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255, 255, 255, 0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stat-change.positive {
+            color: #4ade80;
+        }
+
+        .stat-change.negative {
+            color: #f87171;
+        }
+
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 40px;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .content-card:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-4px);
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            height: 300px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 600;
+            position: relative;
+        }
+
+        .chart-placeholder::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .activity-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            margin: 0 -16px;
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 12px;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 40px;
+        }
+
+        .action-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .action-card:hover::before {
+            opacity: 1;
+        }
+
+        .action-card:hover {
+            transform: translateY(-6px) scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .action-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .action-desc {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 100px 20px 20px;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-bar {
+                position: relative;
+                top: 0;
+                left: 0;
+                transform: none;
+                margin: 20px;
+                border-radius: 16px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card, .content-card, .action-card {
+            animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Loading States */
+        .loading-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Floating Navigation -->
+        <nav class="nav-bar">
+            <a href="#" class="nav-item active">Dashboard</a>
+            <a href="#" class="nav-item">Analytics</a>
+            <a href="#" class="nav-item">Projects</a>
+            <a href="#" class="nav-item">Team</a>
+            <a href="#" class="nav-item">Settings</a>
+        </nav>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">≡</button>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-title">Workspace</div>
+                <a href="#" class="sidebar-item active">
+                    <span>🏠 Dashboard</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span>📊 Analytics</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span>📋 Projects</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span>📝 Documents</span>
+                </a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Collaborate</div>
+                <a href="#" class="sidebar-item">
+                    <span>👥 Team</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span>💬 Messages</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span>📅 Calendar</span>
+                </a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-title">Management</div>
+                <a href="#" class="sidebar-item">
+                    <span>⚙️ Settings</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span>💳 Billing</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <span>🔒 Security</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Header -->
+            <header class="content-header">
+                <h1 class="page-title">Dashboard Overview</h1>
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Export Data</button>
+                    <button class="btn btn-primary">New Project</button>
+                </div>
+            </header>
+
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">2.4K</div>
+                    <div class="stat-label">Active Users</div>
+                    <div class="stat-change positive">↗ +12.5%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">$47.2K</div>
+                    <div class="stat-label">Revenue</div>
+                    <div class="stat-change positive">↗ +8.2%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">94.1%</div>
+                    <div class="stat-label">Uptime</div>
+                    <div class="stat-change negative">↘ -0.3%</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">156</div>
+                    <div class="stat-label">Projects</div>
+                    <div class="stat-change positive">↗ +23</div>
+                </div>
+            </section>
+
+            <!-- Content Grid -->
+            <section class="content-grid">
+                <div class="content-card">
+                    <h2 class="card-title">Performance Analytics</h2>
+                    <div class="chart-container">
+                        <div class="chart-placeholder">
+                            Interactive Chart Visualization
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content-card">
+                    <h2 class="card-title">Recent Activity</h2>
+                    <div class="activity-feed">
+                        <div class="activity-item">
+                            <div class="activity-avatar">JD</div>
+                            <div class="activity-content">
+                                <div class="activity-text">John Doe updated the design system</div>
+                                <div class="activity-time">2 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-avatar">SM</div>
+                            <div class="activity-content">
+                                <div class="activity-text">Sarah Miller completed Project Alpha</div>
+                                <div class="activity-time">4 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-avatar">RT</div>
+                            <div class="activity-content">
+                                <div class="activity-text">Robert Taylor added new team member</div>
+                                <div class="activity-time">1 day ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-avatar">LK</div>
+                            <div class="activity-content">
+                                <div class="activity-text">Lisa Kim deployed version 2.1.0</div>
+                                <div class="activity-time">2 days ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <div class="action-card" onclick="animateClick(this)">
+                    <div class="action-icon">📄</div>
+                    <div class="action-title">Create Document</div>
+                    <div class="action-desc">Start a new collaborative document</div>
+                </div>
+                <div class="action-card" onclick="animateClick(this)">
+                    <div class="action-icon">🎨</div>
+                    <div class="action-title">Design Project</div>
+                    <div class="action-desc">Create a new design workspace</div>
+                </div>
+                <div class="action-card" onclick="animateClick(this)">
+                    <div class="action-icon">📊</div>
+                    <div class="action-title">Analytics Report</div>
+                    <div class="action-desc">Generate performance insights</div>
+                </div>
+                <div class="action-card" onclick="animateClick(this)">
+                    <div class="action-icon">👥</div>
+                    <div class="action-title">Team Meeting</div>
+                    <div class="action-desc">Schedule a collaboration session</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Floating Action Button -->
+        <button class="fab" onclick="showNotification()">+</button>
+    </div>
+
+    <script>
+        // Sidebar Toggle
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('mainContent');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+        }
+
+        // Animate click interactions
+        function animateClick(element) {
+            element.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                element.style.transform = '';
+            }, 150);
+            
+            // Show success notification
+            showNotification('Action completed successfully!', 'success');
+        }
+
+        // Notification system
+        function showNotification(message = 'Quick action triggered!', type = 'info') {
+            // Remove existing notifications
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 40px;
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 12px;
+                padding: 16px 20px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                transform: translateX(400px);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            `;
+            
+            if (type === 'success') {
+                notification.style.borderColor = 'rgba(74, 222, 128, 0.5)';
+                message = '✓ ' + message;
+            }
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Auto remove
+            setTimeout(() => {
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => notification.remove(), 400);
+            }, 3000);
+        }
+
+        // Add loading states to charts
+        function simulateDataLoading() {
+            const charts = document.querySelectorAll('.chart-placeholder');
+            charts.forEach(chart => {
+                chart.classList.add('loading-pulse');
+                setTimeout(() => {
+                    chart.classList.remove('loading-pulse');
+                }, 2000);
+            });
+        }
+
+        // Enhanced interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to navigation
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                    showNotification(`Switched to ${this.textContent}`, 'info');
+                });
+            });
+
+            // Add sidebar item interactions
+            const sidebarItems = document.querySelectorAll('.sidebar-item');
+            sidebarItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    sidebarItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // Simulate periodic data updates
+            setInterval(() => {
+                const statValues = document.querySelectorAll('.stat-value');
+                statValues.forEach(stat => {
+                    const current = parseFloat(stat.textContent.replace(/[^\d.]/g, ''));
+                    const change = (Math.random() - 0.5) * 0.1;
+                    const newValue = current * (1 + change);
+                    
+                    // Animate the change
+                    stat.style.transform = 'scale(1.1)';
+                    stat.style.transition = 'transform 0.3s ease';
+                    
+                    setTimeout(() => {
+                        stat.style.transform = 'scale(1)';
+                    }, 300);
+                });
+            }, 10000);
+
+            // Initialize loading simulation
+            simulateDataLoading();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'k':
+                        e.preventDefault();
+                        showNotification('⌘K - Command palette activated', 'info');
+                        break;
+                    case 'b':
+                        e.preventDefault();
+                        toggleSidebar();
+                        break;
+                    case 'n':
+                        e.preventDefault();
+                        showNotification('⌘N - New project shortcut', 'info');
+                        break;
+                }
+            }
+            
+            if (e.key === 'Escape') {
+                const notification = document.querySelector('.notification');
+                if (notification) {
+                    notification.style.transform = 'translateX(400px)';
+                    setTimeout(() => notification.remove(), 400);
+                }
+            }
+        });
+
+        // Advanced chart simulation
+        function createAdvancedChart() {
+            const chartContainer = document.querySelector('.chart-placeholder');
+            if (!chartContainer) return;
+
+            // Create SVG chart
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', '100%');
+            svg.setAttribute('height', '100%');
+            svg.setAttribute('viewBox', '0 0 400 200');
+            svg.style.position = 'absolute';
+            svg.style.top = '0';
+            svg.style.left = '0';
+
+            // Generate sample data points
+            const dataPoints = [];
+            for (let i = 0; i <= 20; i++) {
+                const x = (i / 20) * 380 + 10;
+                const y = 150 - Math.sin(i * 0.3) * 50 - Math.random() * 30;
+                dataPoints.push({ x, y });
+            }
+
+            // Create gradient
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const gradient = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            gradient.setAttribute('id', 'chartGradient');
+            gradient.setAttribute('x1', '0%');
+            gradient.setAttribute('y1', '0%');
+            gradient.setAttribute('x2', '0%');
+            gradient.setAttribute('y2', '100%');
+
+            const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop1.setAttribute('offset', '0%');
+            stop1.setAttribute('stop-color', 'rgba(102, 126, 234, 0.8)');
+
+            const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            stop2.setAttribute('offset', '100%');
+            stop2.setAttribute('stop-color', 'rgba(118, 75, 162, 0.2)');
+
+            gradient.appendChild(stop1);
+            gradient.appendChild(stop2);
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+
+            // Create area path
+            let pathData = `M ${dataPoints[0].x} 180`;
+            dataPoints.forEach((point, index) => {
+                if (index === 0) {
+                    pathData += ` L ${point.x} ${point.y}`;
+                } else {
+                    pathData += ` L ${point.x} ${point.y}`;
+                }
+            });
+            pathData += ` L ${dataPoints[dataPoints.length - 1].x} 180 Z`;
+
+            const areaPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            areaPath.setAttribute('d', pathData);
+            areaPath.setAttribute('fill', 'url(#chartGradient)');
+            areaPath.style.opacity = '0';
+            areaPath.style.animation = 'fadeIn 1s ease forwards';
+            svg.appendChild(areaPath);
+
+            // Create line path
+            let lineData = `M ${dataPoints[0].x} ${dataPoints[0].y}`;
+            dataPoints.slice(1).forEach(point => {
+                lineData += ` L ${point.x} ${point.y}`;
+            });
+
+            const linePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            linePath.setAttribute('d', lineData);
+            linePath.setAttribute('stroke', 'rgba(255, 255, 255, 0.9)');
+            linePath.setAttribute('stroke-width', '2');
+            linePath.setAttribute('fill', 'none');
+            linePath.setAttribute('stroke-linecap', 'round');
+            linePath.style.strokeDasharray = '1000';
+            linePath.style.strokeDashoffset = '1000';
+            linePath.style.animation = 'drawLine 2s ease forwards';
+            svg.appendChild(linePath);
+
+            // Add data points
+            dataPoints.forEach((point, index) => {
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', point.x);
+                circle.setAttribute('cy', point.y);
+                circle.setAttribute('r', '3');
+                circle.setAttribute('fill', 'white');
+                circle.setAttribute('stroke', 'rgba(102, 126, 234, 1)');
+                circle.setAttribute('stroke-width', '2');
+                circle.style.opacity = '0';
+                circle.style.animation = `fadeIn 0.3s ease ${index * 0.1 + 1}s forwards`;
+                circle.style.cursor = 'pointer';
+                
+                // Add hover effect
+                circle.addEventListener('mouseenter', () => {
+                    circle.setAttribute('r', '5');
+                    showTooltip(point.x, point.y, `Value: ${Math.round(150 - point.y)}`);
+                });
+                
+                circle.addEventListener('mouseleave', () => {
+                    circle.setAttribute('r', '3');
+                    hideTooltip();
+                });
+                
+                svg.appendChild(circle);
+            });
+
+            // Add CSS animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    to { opacity: 1; }
+                }
+                @keyframes drawLine {
+                    to { stroke-dashoffset: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Replace placeholder content
+            chartContainer.innerHTML = '';
+            chartContainer.appendChild(svg);
+        }
+
+        // Tooltip system
+        function showTooltip(x, y, text) {
+            hideTooltip(); // Remove existing
+            
+            const tooltip = document.createElement('div');
+            tooltip.className = 'chart-tooltip';
+            tooltip.style.cssText = `
+                position: absolute;
+                background: rgba(0, 0, 0, 0.8);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 6px;
+                font-size: 12px;
+                pointer-events: none;
+                z-index: 1000;
+                left: ${x}px;
+                top: ${y - 40}px;
+                transform: translateX(-50%);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            `;
+            tooltip.textContent = text;
+            
+            const chartContainer = document.querySelector('.chart-container');
+            chartContainer.appendChild(tooltip);
+            
+            setTimeout(() => tooltip.style.opacity = '1', 10);
+        }
+
+        function hideTooltip() {
+            const existing = document.querySelector('.chart-tooltip');
+            if (existing) existing.remove();
+        }
+
+        // Enhanced loading states with progress
+        function showProgressLoader(element, duration = 2000) {
+            const loader = document.createElement('div');
+            loader.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0%;
+                height: 2px;
+                background: linear-gradient(90deg, #667eea, #764ba2);
+                transition: width ${duration}ms ease;
+                z-index: 10;
+            `;
+            
+            element.style.position = 'relative';
+            element.appendChild(loader);
+            
+            setTimeout(() => loader.style.width = '100%', 100);
+            setTimeout(() => loader.remove(), duration + 200);
+        }
+
+        // Real-time data simulation
+        function startRealTimeUpdates() {
+            const updateInterval = setInterval(() => {
+                // Update random stat
+                const statCards = document.querySelectorAll('.stat-card');
+                const randomCard = statCards[Math.floor(Math.random() * statCards.length)];
+                const valueElement = randomCard.querySelector('.stat-value');
+                const changeElement = randomCard.querySelector('.stat-change');
+                
+                // Animate update
+                randomCard.style.transform = 'scale(1.05)';
+                randomCard.style.boxShadow = '0 20px 60px rgba(102, 126, 234, 0.3)';
+                
+                setTimeout(() => {
+                    randomCard.style.transform = '';
+                    randomCard.style.boxShadow = '';
+                }, 500);
+                
+                // Update change indicator
+                const isPositive = Math.random() > 0.3;
+                changeElement.className = `stat-change ${isPositive ? 'positive' : 'negative'}`;
+                changeElement.innerHTML = isPositive ? '↗ +' + (Math.random() * 10).toFixed(1) + '%' : '↘ -' + (Math.random() * 5).toFixed(1) + '%';
+                
+            }, 8000);
+            
+            return updateInterval;
+        }
+
+        // Enhanced initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            // Previous initialization code...
+            
+            // Create advanced chart after a delay
+            setTimeout(() => {
+                createAdvancedChart();
+            }, 1000);
+            
+            // Start real-time updates
+            startRealTimeUpdates();
+            
+            // Add progress loaders to cards
+            const cards = document.querySelectorAll('.stat-card, .content-card');
+            cards.forEach((card, index) => {
+                setTimeout(() => {
+                    showProgressLoader(card, 1500);
+                }, index * 200);
+            });
+            
+            // Welcome message
+            setTimeout(() => {
+                showNotification('Welcome to Nexus Dashboard! 🚀', 'success');
+            }, 2000);
+        });
+
+        // Performance monitoring
+        let performanceMetrics = {
+            loadTime: performance.now(),
+            interactions: 0,
+            errors: 0
+        };
+
+        // Track interactions
+        document.addEventListener('click', () => {
+            performanceMetrics.interactions++;
+        });
+
+        // Export functionality
+        function exportDashboardData() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                stats: {
+                    activeUsers: '2.4K',
+                    revenue: '$47.2K',
+                    uptime: '94.1%',
+                    projects: '156'
+                },
+                performance: performanceMetrics
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dashboard-export.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('Dashboard data exported successfully! 📊', 'success');
+        }
+
+        // Add export functionality to button
+        document.querySelector('.btn-secondary').addEventListener('click', function(e) {
+            e.preventDefault();
+            exportDashboardData();
+        });
+    </script>
+</body>
+</html>
