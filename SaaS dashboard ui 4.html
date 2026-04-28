@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudSync Pro Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0078d4;
+            --primary-hover: #106ebe;
+            --secondary: #f3f2f1;
+            --accent: #6264a7;
+            --success: #107c10;
+            --warning: #ffb900;
+            --error: #d13438;
+            --text-primary: #323130;
+            --text-secondary: #605e5c;
+            --border: #edebe9;
+            --surface: #ffffff;
+            --surface-hover: #f8f8f8;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 16px rgba(0,0,0,0.15);
+            --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #faf9f8;
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-200px);
+        }
+
+        .logo {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 16px 0;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            position: relative;
+            margin: 0 8px;
+            border-radius: 6px;
+        }
+
+        .nav-item:hover {
+            background: var(--surface-hover);
+            color: var(--primary);
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        .nav-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            opacity: 0.8;
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .main-content.expanded {
+            margin-left: 60px;
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .menu-toggle:hover {
+            background: var(--surface-hover);
+            color: var(--primary);
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: var(--secondary);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 2px rgba(0, 120, 212, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-left: auto;
+        }
+
+        .notification-btn {
+            position: relative;
+            background: none;
+            border: none;
+            padding: 8px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
+        }
+
+        .notification-btn:hover {
+            background: var(--surface-hover);
+            color: var(--primary);
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            background: var(--error);
+            color: white;
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .user-profile:hover {
+            background: var(--surface-hover);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .content-area {
+            padding: 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 16px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .stat-title {
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--error);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 32px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-header {
+            padding: 24px 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 24px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 16px;
+        }
+
+        .recent-activity {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .activity-item:hover {
+            background: var(--surface-hover);
+            margin: 0 -24px;
+            padding-left: 24px;
+            padding-right: 24px;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .project-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .project-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .project-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .project-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-active {
+            background: rgba(16, 124, 16, 0.1);
+            color: var(--success);
+        }
+
+        .status-pending {
+            background: rgba(255, 185, 0, 0.1);
+            color: var(--warning);
+        }
+
+        .project-description {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--secondary);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .team-avatars {
+            display: flex;
+            margin-top: 16px;
+            gap: 8px;
+        }
+
+        .team-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            font-weight: 600;
+            border: 2px solid white;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.mobile-open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .content-area {
+                padding: 16px;
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">CS</div>
+                <div class="logo-text">CloudSync Pro</div>
+            </div>
+            
+            <div class="nav-menu">
+                <a href="#" class="nav-item active" data-page="dashboard">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z"></path>
+                        <path d="M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z"></path>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item" data-page="projects">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"></path>
+                    </svg>
+                    Projects
+                </a>
+                <a href="#" class="nav-item" data-page="analytics">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
+                    </svg>
+                    Analytics
+                </a>
+                <a href="#" class="nav-item" data-page="team">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+                    </svg>
+                    Team
+                </a>
+                <a href="#" class="nav-item" data-page="settings">
+                    <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                    </svg>
+                    Settings
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <div class="search-box">
+                        <svg class="search-icon" width="16" height="16" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                        </svg>
+                        <input type="text" class="search-input" placeholder="Search projects, files, team..." id="searchInput">
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button class="notification-btn" id="notificationBtn">
+                        <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
+                        </svg>
+                        <div class="notification-badge"></div>
+                    </button>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar">MS</div>
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">Microsoft User</div>
+                            <div style="font-size: 12px; color: var(--text-secondary);">Admin</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <div id="dashboardContent">
+                    <div class="page-header fade-in">
+                        <h1 class="page-title">Welcome back, Microsoft User</h1>
+                        <p class="page-subtitle">Here's what's happening with your projects today.</p>
+                    </div>
+
+                    <div class="stats-grid fade-in">
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Total Revenue</span>
+                                <div class="stat-icon" style="background: rgba(16, 124, 16, 0.1); color: var(--success);">💰</div>
+                            </div>
+                            <div class="stat-value">$127,543</div>
+                            <div class="stat-change positive">
+                                <span>↗</span> +12.5% from last month
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Active Users</span>
+                                <div class="stat-icon" style="background: rgba(0, 120, 212, 0.1); color: var(--primary);">👥</div>
+                            </div>
+                            <div class="stat-value">8,429</div>
+                            <div class="stat-change positive">
+                                <span>↗</span> +8.2% from last week
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Projects</span>
+                                <div class="stat-icon" style="background: rgba(98, 100, 167, 0.1); color: var(--accent);">📊</div>
+                            </div>
+                            <div class="stat-value">24</div>
+                            <div class="stat-change positive">
+                                <span>↗</span> +3 new this week
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-header">
+                                <span class="stat-title">Performance</span>
+                                <div class="stat-icon" style="background: rgba(255, 185, 0, 0.1); color: var(--warning);">⚡</div>
+                            </div>
+                            <div class="stat-value">94.2%</div>
+                            <div class="stat-change negative">
+                                <span>↘</span> -2.1% from last month
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="content-grid fade-in">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Performance Analytics</h3>
+                                <button class="btn btn-outline">View Details</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="performanceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Recent Activity</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="recent-activity">
+                                    <div class="activity-item">
+                                        <div class="activity-avatar">JD</div>
+                                        <div class="activity-content">
+                                            <div class="activity-text"><strong>John Doe</strong> completed project milestone</div>
+                                            <div class="activity-time">2 minutes ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar">SM</div>
+                                        <div class="activity-content">
+                                            <div class="activity-text"><strong>Sarah Miller</strong> updated dashboard design</div>
+                                            <div class="activity-time">15 minutes ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar">MB</div>
+                                        <div class="activity-content">
+                                            <div class="activity-text"><strong>Mike Brown</strong> added new team member</div>
+                                            <div class="activity-time">1 hour ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="activity-item">
+                                        <div class="activity-avatar">LW</div>
+                                        <div class="activity-content">
+                                            <div class="activity-text"><strong>Lisa Wang</strong> deployed to production</div>
+                                            <div class="activity-time">3 hours ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="projectsContent" style="display: none;">
+                    <div class="page-header fade-in">
+                        <h1 class="page-title">Projects Overview</h1>
+                        <p class="page-subtitle">Manage and track all your active projects in one place.</p>
+                    </div>
+
+                    <div class="projects-grid fade-in">
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">Azure Migration</h3>
+                                <span class="project-status status-active">Active</span>
+                            </div>
+                            <p class="project-description">Migrating legacy systems to Microsoft Azure cloud infrastructure for improved scalability and performance.</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 75%"></div>
+                            </div>
+                            <div class="progress-text">75% Complete</div>
+                            <div class="team-avatars">
+                                <div class="team-avatar">JD</div>
+                                <div class="team-avatar">SM</div>
+                                <div class="team-avatar">MB</div>
+                            </div>
+                        </div>
+
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">Teams Integration</h3>
+                                <span class="project-status status-pending">Pending</span>
+                            </div>
+                            <p class="project-description">Developing custom Microsoft Teams integration for seamless workflow automation and collaboration.</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%"></div>
+                            </div>
+                            <div class="progress-text">45% Complete</div>
+                            <div class="team-avatars">
+                                <div class="team-avatar">LW</div>
+                                <div class="team-avatar">RJ</div>
+                            </div>
+                        </div>
+
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">Power BI Dashboard</h3>
+                                <span class="project-status status-active">Active</span>
+                            </div>
+                            <p class="project-description">Creating comprehensive Power BI dashboards for real-time business intelligence and analytics.</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 90%"></div>
+                            </div>
+                            <div class="progress-text">90% Complete</div>
+                            <div class="team-avatars">
+                                <div class="team-avatar">MS</div>
+                                <div class="team-avatar">KL</div>
+                                <div class="team-avatar">TH</div>
+                                <div class="team-avatar">NP</div>
+                            </div>
+                        </div>
+
+                        <div class="project-card">
+                            <div class="project-header">
+                                <h3 class="project-title">Security Audit</h3>
+                                <span class="project-status status-active">Active</span>
+                            </div>
+                            <p class="project-description">Comprehensive security assessment and implementation of Microsoft security best practices.</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 60%"></div>
+                            </div>
+                            <div class="progress-text">60% Complete</div>
+                            <div class="team-avatars">
+                                <div class="team-avatar">AR</div>
+                                <div class="team-avatar">DS</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="analyticsContent" style="display: none;">
+                    <div class="page-header fade-in">
+                        <h1 class="page-title">Analytics Dashboard</h1>
+                        <p class="page-subtitle">Detailed insights and performance metrics for your organization.</p>
+                    </div>
+
+                    <div class="content-grid fade-in">
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">User Engagement Trends</h3>
+                                <button class="btn btn-outline">Export Data</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="engagementChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Revenue Breakdown</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="revenueChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h2 style="margin-bottom: 16px;">Microsoft Excellence</h2>
+            <p style="margin-bottom: 24px; color: var(--text-secondary);">This dashboard demonstrates enterprise-grade UI/UX design principles with smooth animations, responsive layouts, and professional Microsoft-inspired aesthetics.</p>
+            <button class="btn btn-primary" onclick="closeModal()">Impressive! Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Global state management
+        const AppState = {
+            currentPage: 'dashboard',
+            sidebarCollapsed: false,
+            charts: {},
+            notifications: 3,
+            projects: [
+                {
+                    id: 1,
+                    title: 'Azure Migration',
+                    status: 'active',
+                    progress: 75,
+                    team: ['JD', 'SM', 'MB']
+                },
+                {
+                    id: 2,
+                    title: 'Teams Integration',
+                    status: 'pending',
+                    progress: 45,
+                    team: ['LW', 'RJ']
+                }
+            ]
+        };
+
+        // DOM Elements
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const menuToggle = document.getElementById('menuToggle');
+        const searchInput = document.getElementById('searchInput');
+        const notificationBtn = document.getElementById('notificationBtn');
+        const userProfile = document.getElementById('userProfile');
+        const modalOverlay = document.getElementById('modalOverlay');
+
+        // Navigation functionality
+        function initNavigation() {
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = item.dataset.page;
+                    
+                    // Update active nav item
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    // Show/hide content
+                    showPage(page);
+                    
+                    // Update app state
+                    AppState.currentPage = page;
+                    
+                    // Add smooth transition effect
+                    document.querySelector('.content-area').style.opacity = '0';
+                    setTimeout(() => {
+                        document.querySelector('.content-area').style.opacity = '1';
+                    }, 150);
+                });
+            });
+        }
+
+        function showPage(page) {
+            // Hide all content sections
+            const contentSections = ['dashboardContent', 'projectsContent', 'analyticsContent'];
+            contentSections.forEach(section => {
+                const element = document.getElementById(section);
+                if (element) element.style.display = 'none';
+            });
+            
+            // Show selected page
+            const targetContent = document.getElementById(page + 'Content');
+            if (targetContent) {
+                targetContent.style.display = 'block';
+                // Trigger animations
+                const elements = targetContent.querySelectorAll('.fade-in');
+                elements.forEach((el, index) => {
+                    el.style.animationDelay = `${index * 0.1}s`;
+                });
+            }
+        }
+
+        // Sidebar toggle functionality
+        function initSidebar() {
+            menuToggle.addEventListener('click', () => {
+                AppState.sidebarCollapsed = !AppState.sidebarCollapsed;
+                
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.toggle('mobile-open');
+                } else {
+                    sidebar.classList.toggle('collapsed');
+                    mainContent.classList.toggle('expanded');
+                }
+            });
+
+            // Close sidebar on mobile when clicking outside
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && 
+                    !sidebar.contains(e.target) && 
+                    !menuToggle.contains(e.target) &&
+                    sidebar.classList.contains('mobile-open')) {
+                    sidebar.classList.remove('mobile-open');
+                }
+            });
+        }
+
+        // Search functionality
+        function initSearch() {
+            let searchTimeout;
+            
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length > 0) {
+                    searchInput.style.borderColor = 'var(--primary)';
+                    searchTimeout = setTimeout(() => {
+                        performSearch(query);
+                    }, 300);
+                } else {
+                    searchInput.style.borderColor = 'var(--border)';
+                }
+            });
+
+            searchInput.addEventListener('focus', () => {
+                searchInput.parentElement.style.transform = 'scale(1.02)';
+            });
+
+            searchInput.addEventListener('blur', () => {
+                searchInput.parentElement.style.transform = 'scale(1)';
+            });
+        }
+
+        function performSearch(query) {
+            console.log('Searching for:', query);
+            // Simulate search loading
+            const searchIcon = document.querySelector('.search-icon');
+            searchIcon.innerHTML = '<div class="loading"></div>';
+            
+            setTimeout(() => {
+                searchIcon.innerHTML = '<path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>';
+            }, 1000);
+        }
+
+        // Chart initialization
+        function initCharts() {
+            // Performance Chart
+            const performanceCtx = document.getElementById('performanceChart');
+            if (performanceCtx) {
+                AppState.charts.performance = new Chart(performanceCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Performance Score',
+                            data: [85, 89, 92, 88, 94, 96],
+                            borderColor: '#0078d4',
+                            backgroundColor: 'rgba(0, 120, 212, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#0078d4',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                min: 80,
+                                max: 100,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    color: '#605e5c'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#605e5c'
+                                }
+                            }
+                        },
+                        elements: {
+                            point: {
+                                hoverRadius: 8
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Engagement Chart
+            const engagementCtx = document.getElementById('engagementChart');
+            if (engagementCtx) {
+                AppState.charts.engagement = new Chart(engagementCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                        datasets: [{
+                            label: 'Daily Active Users',
+                            data: [1200, 1900, 3000, 5000, 4200, 3000, 2000],
+                            backgroundColor: 'rgba(102, 100, 167, 0.8)',
+                            borderColor: '#6264a7',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    color: '#605e5c'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    color: '#605e5c'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart');
+            if (revenueCtx) {
+                AppState.charts.revenue = new Chart(revenueCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Azure', 'Office 365', 'Teams', 'Power Platform'],
+                        datasets: [{
+                            data: [40, 30, 20, 10],
+                            backgroundColor: [
+                                '#0078d4',
+                                '#6264a7',
+                                '#107c10',
+                                '#ffb900'
+                            ],
+                            borderWidth: 0,
+                            cutout: '70%'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    color: '#323130'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Notification functionality
+        function initNotifications() {
+            notificationBtn.addEventListener('click', () => {
+                showModal();
+                // Simulate clearing notifications
+                setTimeout(() => {
+                    document.querySelector('.notification-badge').style.display = 'none';
+                }, 1000);
+            });
+        }
+
+        // Modal functionality
+        function showModal() {
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // User profile functionality
+        function initUserProfile() {
+            userProfile.addEventListener('click', () => {
+                showModal();
+            });
+        }
+
+        // Animation utilities
+        function animateValue(element, start, end, duration) {
+            const startTime = performance.now();
+            const animate = (currentTime) => {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const value = Math.floor(start + (end - start) * progress);
+                element.textContent = value.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+            requestAnimationFrame(animate);
+        }
+
+        // Initialize stat counters with animation
+        function initStatCounters() {
+            const statValues = document.querySelectorAll('.stat-value');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const element = entry.target;
+                        const text = element.textContent.replace(/[^0-9.]/g, '');
+                        const value = parseFloat(text);
+                        element.textContent = '0';
+                        animateValue(element, 0, value, 2000);
+                        observer.unobserve(element);
+                    }
+                });
+            });
+            
+            statValues.forEach(stat => observer.observe(stat));
+        }
+
+        // Progress bar animations
+        function initProgressBars() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const bar = entry.target;
+                        const width = bar.style.width;
+                        bar.style.width = '0%';
+                        bar.style.transition = 'width 1.5s ease-out';
+                        setTimeout(() => {
+                            bar.style.width = width;
+                        }, 100);
+                        observer.unobserve(bar);
+                    }
+                });
+            });
+            
+            progressBars.forEach(bar => observer.observe(bar));
+        }
+
+        // Responsive handling
+        function handleResize() {
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 768) {
+                    sidebar.classList.remove('mobile-open');
+                }
+                
+                // Resize charts
+                Object.values(AppState.charts).forEach(chart => {
+                    if (chart && typeof chart.resize === 'function') {
+                        chart.resize();
+                    }
+                });
+            });
+        }
+
+        // Initialize application
+        function init() {
+            console.log('🚀 Initializing CloudSync Pro Dashboard...');
+            
+            // Initialize all components
+            initNavigation();
+            initSidebar();
+            initSearch();
+            initNotifications();
+            initUserProfile();
+            handleResize();
+            
+            // Initialize charts after DOM is ready
+            setTimeout(() => {
+                initCharts();
+                initStatCounters();
+                initProgressBars();
+            }, 100);
+
+            // Modal event listeners
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    closeModal();
+                }
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'k') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+
+            // Add some dynamic interactions
+            setTimeout(() => {
+                showModal();
+            }, 2000);
+
+            console.log('✅ Dashboard initialized successfully!');
+        }
+
+        // Start the application
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Global functions for modal
+        window.closeModal = closeModal;
+    </script>
+</body>
+</html>
