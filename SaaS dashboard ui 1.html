@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusDash - Professional SaaS Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-dark: #1a1d29;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --sidebar-width: 280px;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .dark-mode {
+            --primary-gradient: linear-gradient(135deg, #4a69bb 0%, #5d3a8a 100%);
+            --card-bg: #1f2937;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --primary-dark: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s ease;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--primary-gradient);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            transition: var(--transition);
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            background: #f8fafc;
+        }
+
+        .dark-mode .dashboard-container {
+            background: #0f172a;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary-dark) 0%, #2d3748 100%);
+            color: white;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .sidebar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
+            z-index: 1;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-gradient);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-2px) rotate(2deg); }
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-gradient);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(8px);
+        }
+
+        .nav-item:hover::before,
+        .nav-item.active::before {
+            transform: scaleY(1);
+        }
+
+        .nav-item i {
+            width: 20px;
+            margin-right: 12px;
+            font-size: 16px;
+        }
+
+        .nav-badge {
+            margin-left: auto;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--card-bg);
+            padding: 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            z-index: 50;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-title {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 320px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px 12px 44px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: var(--transition);
+            background: #f8fafc;
+            color: var(--text-primary);
+        }
+
+        .dark-mode .search-input {
+            background: #1f2937;
+            border-color: #374151;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: var(--card-bg);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        .theme-toggle {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            transform: rotate(15deg);
+            background: #f1f5f9;
+        }
+
+        .dark-mode .theme-toggle:hover {
+            background: #1f2937;
+        }
+
+        .notification-bell {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .notification-bell:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .notification-count {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s infinite;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 12px;
+            transition: var(--transition);
+            cursor: pointer;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .user-profile:hover {
+            background: #f8fafc;
+        }
+
+        .dark-mode .user-profile:hover {
+            background: #1f2937;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .stat-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        .stat-indicator.green { background: var(--success); }
+        .stat-indicator.blue { background: var(--info); }
+        .stat-indicator.purple { background: #8b5cf6; }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        /* Dashboard Body */
+        .dashboard-body {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
+        .dark-mode .dashboard-body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .chart-container {
+            height: 300px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dark-mode .chart-container {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dark-mode .metric-card {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: var(--primary-gradient);
+            z-index: -1;
+            border-radius: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .metric-card:hover::before {
+            opacity: 1;
+        }
+
+        .metric-card:hover {
+            background: var(--card-bg);
+            transform: scale(1.02);
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .change-positive { color: var(--success); }
+        .change-negative { color: var(--danger); }
+
+        /* Activity Feed */
+        .activity-item {
+            display: flex;
+            align-items: start;
+            gap: 12px;
+            padding: 16px 0;
+            border-bottom: 1px solid #f1f5f9;
+            transition: var(--transition);
+        }
+
+        .dark-mode .activity-item {
+            border-bottom: 1px solid #374151;
+        }
+
+        .activity-item:hover {
+            background: #f8fafc;
+            margin: 0 -24px;
+            padding: 16px 24px;
+            border-radius: 8px;
+        }
+
+        .dark-mode .activity-item:hover {
+            background: #1f2937;
+        }
+
+        .activity-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Projects Section */
+        .projects-section {
+            margin-top: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .view-all {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .view-all:hover {
+            color: #764ba2;
+        }
+
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--project-color, #667eea), var(--project-color-end, #764ba2));
+        }
+
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .project-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+
+        .project-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .project-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-review {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-completed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .dark-mode .status-active {
+            background: rgba(22, 101, 52, 0.2);
+        }
+
+        .dark-mode .status-review {
+            background: rgba(146, 64, 14, 0.2);
+        }
+
+        .dark-mode .status-completed {
+            background: rgba(30, 64, 175, 0.2);
+        }
+
+        .project-progress {
+            margin: 16px 0;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #f1f5f9;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .dark-mode .progress-bar {
+            background: #1f2937;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--project-color, #667eea), var(--project-color-end, #764ba2));
+            border-radius: 3px;
+            transition: width 1s ease;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        .project-team {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .team-avatars {
+            display: flex;
+            margin-right: 8px;
+        }
+
+        .team-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--primary-gradient);
+            border: 2px solid var(--card-bg);
+            margin-left: -8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .team-avatar:first-child {
+            margin-left: 0;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 28px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            transition: var(--transition);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Notifications Panel */
+        .notifications-panel {
+            position: fixed;
+            top: -400px;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            z-index: 100;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            border-radius: 0 0 16px 16px;
+            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .notifications-panel.active {
+            top: 0;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .notification-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            background: #f8fafc;
+            transition: var(--transition);
+            cursor: pointer;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .dark-mode .notification-item {
+            background: #1f2937;
+        }
+
+        .notification-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .notification-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notification-info {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .notification-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                height: 100vh;
+                z-index: 1000;
+                box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+            }
+            
+            .sidebar.active {
+                left: 0;
+            }
+            
+            .header-title {
+                font-size: 22px;
+            }
+            
+            .search-box {
+                width: 200px;
+            }
+            
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box {
+                width: 100%;
+                max-width: 320px;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .dark-mode ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #5a6fd8, #6b46a3);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .animate {
+            animation: fadeIn 0.6s ease forwards;
+        }
+
+        .animate-delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .animate-delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .animate-delay-3 {
+            animation-delay: 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-chart-network"></i>
+                    </div>
+                    <span>NexusDash</span>
+                </div>
+                <div class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-times"></i>
+                </div>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Projects</span>
+                    <span class="nav-badge">12</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>Team</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-calendar"></i>
+                    <span>Calendar</span>
+                    <span class="nav-badge">3</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Documents</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i class="fas fa-life-ring"></i>
+                    <span>Support</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <div class="header-top">
+                    <div>
+                        <h1 class="header-title">Welcome back, Alex</h1>
+                        <div class="stats-bar">
+                            <div class="stat-item">
+                                <div class="stat-indicator green"></div>
+                                <span>Active Projects: <span class="stat-value">12</span></span>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-indicator blue"></div>
+                                <span>Team Members: <span class="stat-value">8</span></span>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-indicator purple"></div>
+                                <span>Completion Rate: <span class="stat-value">94%</span></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search projects, files, or team members...">
+                        </div>
+                        <div class="theme-toggle" id="themeToggle">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <div class="notification-bell" id="notificationBell">
+                            <i class="fas fa-bell"></i>
+                            <div class="notification-count">5</div>
+                        </div>
+                        <div class="user-profile">
+                            <div class="avatar">AJ</div>
+                            <div>
+                                <div style="font-weight: 600; font-size: 14px;">Alex Johnson</div>
+                                <div style="font-size: 12px; color: var(--text-secondary);">Product Manager</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="dashboard-body">
+                <div class="dashboard-grid">
+                    <!-- Analytics Chart -->
+                    <div class="card animate">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h3 style="font-size: 18px; font-weight: 600;">Performance Analytics</h3>
+                            <select id="timeRange" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; background: var(--card-bg); color: var(--text-primary);">
+                                <option>Last 30 days</option>
+                                <option>Last 90 days</option>
+                                <option>Last year</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Activity & Metrics -->
+                    <div class="card animate animate-delay-1">
+                        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">Key Metrics</h3>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value">127</div>
+                                <div class="metric-label">Tasks Done</div>
+                                <div class="metric-change change-positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +12%
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">23</div>
+                                <div class="metric-label">In Progress</div>
+                                <div class="metric-change change-negative">
+                                    <i class="fas fa-arrow-down"></i>
+                                    -5%
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">94%</div>
+                                <div class="metric-label">Success Rate</div>
+                                <div class="metric-change change-positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +3%
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">8.2</div>
+                                <div class="metric-label">Avg Rating</div>
+                                <div class="metric-change change-positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    +0.3
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 style="font-size: 16px; font-weight: 600; margin: 24px 0 16px;">Recent Activity</h4>
+                        <div style="max-height: 200px; overflow-y: auto;">
+                            <div class="activity-item">
+                                <div class="activity-avatar">JD</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">John Doe completed "Mobile App Design" task</div>
+                                    <div class="activity-time">2 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar">AM</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Anna Martinez shared "Brand Guidelines" document</div>
+                                    <div class="activity-time">15 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar">RW</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">Robert Wilson updated project timeline</div>
+                                    <div class="activity-time">1 hour ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Section -->
+                <div class="projects-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Active Projects</h2>
+                        <a href="#" class="view-all">View all projects →</a>
+                    </div>
+                    
+                    <div class="projects-grid">
+                        <div class="project-card animate animate-delay-2" style="--project-color: #10b981; --project-color-end: #059669;">
+                            <div class="project-header">
+                                <div>
+                                    <div class="project-title">E-commerce Platform Redesign</div>
+                                    <div style="font-size: 14px; color: var(--text-secondary);">UI/UX Design</div>
+                                </div>
+                                <div class="project-status status-active">Active</div>
+                            </div>
+                            <div class="project-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 78%;"></div>
+                                </div>
+                                <div class="progress-text">78% Complete • Due in 12 days</div>
+                            </div>
+                            <div class="project-team">
+                                <div class="team-avatars">
+                                    <div class="team-avatar">RW</div>
+                                    <div class="team-avatar">LB</div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-secondary);">2 members</span>
+                            </div>
+                        </div>
+
+                        <div class="project-card animate animate-delay-2" style="--project-color: #8b5cf6; --project-color-end: #7c3aed;">
+                            <div class="project-header">
+                                <div>
+                                    <div class="project-title">Brand Identity System</div>
+                                    <div style="font-size: 14px; color: var(--text-secondary);">Brand Design</div>
+                                </div>
+                                <div class="project-status status-completed">Completed</div>
+                            </div>
+                            <div class="project-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 100%;"></div>
+                                </div>
+                                <div class="progress-text">100% Complete • Delivered on time</div>
+                            </div>
+                            <div class="project-team">
+                                <div class="team-avatars">
+                                    <div class="team-avatar">SM</div>
+                                    <div class="team-avatar">TC</div>
+                                    <div class="team-avatar">MK</div>
+                                    <div class="team-avatar">PL</div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-secondary);">4 members</span>
+                            </div>
+                        </div>
+
+                        <div class="project-card animate animate-delay-3" style="--project-color: #f59e0b; --project-color-end: #d97706;">
+                            <div class="project-header">
+                                <div>
+                                    <div class="project-title">Dashboard Analytics V2</div>
+                                    <div style="font-size: 14px; color: var(--text-secondary);">Data Visualization</div>
+                                </div>
+                                <div class="project-status status-active">Active</div>
+                            </div>
+                            <div class="project-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45%;"></div>
+                                </div>
+                                <div class="progress-text">45% Complete • Due in 18 days</div>
+                            </div>
+                            <div class="project-team">
+                                <div class="team-avatars">
+                                    <div class="team-avatar">JD</div>
+                                    <div class="team-avatar">RW</div>
+                                    <div class="team-avatar">NK</div>
+                                </div>
+                                <span style="font-size: 12px; color: var(--text-secondary);">3 members</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button class="fab" id="createProjectBtn">
+            <i class="fas fa-plus"></i>
+        </button>
+
+        <!-- Notifications Panel -->
+        <div class="notifications-panel" id="notificationsPanel">
+            <div class="notification-header">
+                <h3>Notifications (5)</h3>
+                <button id="closeNotifications" style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+                    <i class="fas fa-project-diagram"></i>
+                </div>
+                <div class="notification-info">
+                    <div class="notification-title">New Project Assigned</div>
+                    <div class="notification-desc">You've been assigned to the Dashboard Analytics project</div>
+                    <div class="notification-time">10 minutes ago</div>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="notification-info">
+                    <div class="notification-title">Task Completed</div>
+                    <div class="notification-desc">Robert Wilson completed the mobile app design task</div>
+                    <div class="notification-time">45 minutes ago</div>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="notification-info">
+                    <div class="notification-title">Approval Needed</div>
+                    <div class="notification-desc">Brand guidelines document requires your approval</div>
+                    <div class="notification-time">2 hours ago</div>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon" style="background: rgba(139, 92, 246, 0.1); color: #8b5cf6;">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <div class="notification-info">
+                    <div class="notification-title">Meeting Reminder</div>
+                    <div class="notification-desc">Quarterly review meeting in 30 minutes</div>
+                    <div class="notification-time">3 hours ago</div>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="notification-info">
+                    <div class="notification-title">System Update Required</div>
+                    <div class="notification-desc">Your dashboard requires an important security update</div>
+                    <div class="notification-time">5 hours ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Theme toggle
+            const themeToggle = document.getElementById('themeToggle');
+            const body = document.body;
+            
+            // Check for saved theme preference
+            if (localStorage.getItem('theme') === 'dark') {
+                body.classList.add('dark-mode');
+                themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+            
+            themeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                if (body.classList.contains('dark-mode')) {
+                    localStorage.setItem('theme', 'dark');
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+                } else {
+                    localStorage.setItem('theme', 'light');
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                }
+            });
+            
+            // Sidebar toggle for mobile
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+            
+            // Notifications panel
+            const notificationBell = document.getElementById('notificationBell');
+            const notificationsPanel = document.getElementById('notificationsPanel');
+            const closeNotifications = document.getElementById('closeNotifications');
+            
+            notificationBell.addEventListener('click', () => {
+                notificationsPanel.classList.toggle('active');
+            });
+            
+            closeNotifications.addEventListener('click', () => {
+                notificationsPanel.classList.remove('active');
+            });
+            
+            // Create project modal
+            const createProjectBtn = document.getElementById('createProjectBtn');
+            
+            createProjectBtn.addEventListener('click', () => {
+                showNewProjectModal();
+            });
+            
+            // Initialize charts
+            const performanceChart = new Chart(
+                document.getElementById('performanceChart'),
+                {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                        datasets: [{
+                            label: 'Project Completion',
+                            data: [65, 59, 80, 81, 76, 85, 94],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#fff',
+                            pointBorderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }, {
+                            label: 'Task Completion',
+                            data: [45, 52, 65, 70, 68, 74, 82],
+                            borderColor: '#764ba2',
+                            backgroundColor: 'rgba(118, 75, 162, 0.1)',
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#fff',
+                            pointBorderWidth: 2,
+                            tension: 0.3,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    color: body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b'
+                                }
+                            },
+                            tooltip: {
+                                backgroundColor: body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff',
+                                titleColor: body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b',
+                                bodyColor: body.classList.contains('dark-mode') ? '#d1d5db' : '#4b5563',
+                                borderColor: '#e5e7eb',
+                                borderWidth: 1
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: body.classList.contains('dark-mode') ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    color: body.classList.contains('dark-mode') ? '#9ca3af' : '#6b7280'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    color: body.classList.contains('dark-mode') ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)'
+                                },
+                                ticks: {
+                                    color: body.classList.contains('dark-mode') ? '#9ca3af' : '#6b7280'
+                                }
+                            }
+                        }
+                    }
+                }
+            );
+            
+            // Time range selector
+            const timeRange = document.getElementById('timeRange');
+            timeRange.addEventListener('change', function() {
+                // Simulate data change based on selection
+                const newData = getDataForRange(this.value);
+                performanceChart.data.datasets[0].data = newData.projectData;
+                performanceChart.data.datasets[1].data = newData.taskData;
+                performanceChart.update();
+            });
+            
+            // Animate progress bars on load
+            setTimeout(() => {
+                const progressBars = document.querySelectorAll('.progress-fill');
+                progressBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0%';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
+            }, 500);
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    notificationsPanel.classList.remove('active');
+                }
+                if (e.ctrlKey && e.key === 'k') {
+                    e.preventDefault();
+                    document.querySelector('.search-input').focus();
+                }
+                if (e.ctrlKey && e.key === 'n') {
+                    e.preventDefault();
+                    showNewProjectModal();
+                }
+                if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    themeToggle.click();
+                }
+            });
+            
+            // Add tooltip functionality
+            addTooltips();
+        });
+        
+        // Helper functions
+        function getDataForRange(range) {
+            if (range === 'Last 90 days') {
+                return {
+                    projectData: [55, 60, 70, 75, 80, 85, 90],
+                    taskData: [40, 50, 60, 65, 70, 75, 80]
+                };
+            } else if (range === 'Last year') {
+                return {
+                    projectData: [30, 40, 50, 60, 70, 80, 90],
+                    taskData: [25, 35, 45, 55, 65, 75, 85]
+                };
+            }
+            return {
+                projectData: [65, 59, 80, 81, 76, 85, 94],
+                taskData: [45, 52, 65, 70, 68, 74, 82]
+            };
+        }
+        
+        function showNewProjectModal() {
+            // Create modal overlay
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+                animation: fadeIn 0.3s ease;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: ${document.body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff'};
+                border-radius: 16px;
+                padding: 32px;
+                max-width: 500px;
+                width: 90%;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                animation: slideUp 0.3s ease;
+            `;
+            
+            modalContent.innerHTML = `
+                <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 16px; background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Create New Project</h3>
+                <form style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: ${document.body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b'};">Project Name</label>
+                        <input type="text" placeholder="Enter project name..." style="width: 100%; padding: 12px; border: 2px solid ${document.body.classList.contains('dark-mode') ? '#374151' : '#e5e7eb'}; border-radius: 8px; font-size: 14px; background: ${document.body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff'}; color: ${document.body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b'}">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: ${document.body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b'};">Category</label>
+                        <select style="width: 100%; padding: 12px; border: 2px solid ${document.body.classList.contains('dark-mode') ? '#374151' : '#e5e7eb'}; border-radius: 8px; font-size: 14px; background: ${document.body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff'}; color: ${document.body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b'}">
+                            <option>UI/UX Design</option>
+                            <option>Web Development</option>
+                            <option>Mobile App</option>
+                            <option>Brand Design</option>
+                            <option>Data Analysis</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600; color: ${document.body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b'};">Description</label>
+                        <textarea placeholder="Project description..." style="width: 100%; height: 100px; padding: 12px; border: 2px solid ${document.body.classList.contains('dark-mode') ? '#374151' : '#e5e7eb'}; border-radius: 8px; font-size: 14px; background: ${document.body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff'}; color: ${document.body.classList.contains('dark-mode') ? '#f3f4f6' : '#1e293b'}"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="button" onclick="closeModal()" style="flex: 1; padding: 12px; border: 2px solid ${document.body.classList.contains('dark-mode') ? '#374151' : '#e5e7eb'}; background: ${document.body.classList.contains('dark-mode') ? '#1f2937' : '#ffffff'}; border-radius: 8px; font-weight: 600; color: ${document.body.classList.contains('dark-mode') ? '#9ca3af' : '#6b7280'}; cursor: pointer;">Cancel</button>
+                        <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(45deg, #667eea, #764ba2); border: none; border-radius: 8px; font-weight: 600; color: white; cursor: pointer;">Create Project</button>
+                    </div>
+                </form>
+            `;
+            
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Add animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(50px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    closeModal();
+                }
+            });
+            
+            // Handle form submission
+            const form = modalContent.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                alert('Project created successfully!');
+                closeModal();
+            });
+            
+            window.currentModal = modal;
+        }
+
+        function closeModal() {
+            if (window.currentModal) {
+                window.currentModal.style.animation = 'fadeOut 0.3s ease forwards';
+                setTimeout(() => {
+                    window.currentModal.remove();
+                    window.currentModal = null;
+                }, 300);
+            }
+        }
+        
+        function addTooltips() {
+            const tooltipElements = document.querySelectorAll('[title]');
+            tooltipElements.forEach(element => {
+                element.addEventListener('mouseenter', function(e) {
+                    const tooltip = document.createElement('div');
+                    tooltip.textContent = this.getAttribute('title');
+                    tooltip.style.cssText = `
+                        position: absolute;
+                        background: #1f2937;
+                        color: white;
+                        padding: 8px 12px;
+                        border-radius: 6px;
+                        font-size: 12px;
+                        z-index: 1000;
+                        pointer-events: none;
+                        animation: fadeIn 0.2s ease;
+                    `;
+                    
+                    document.body.appendChild(tooltip);
+                    
+                    const rect = this.getBoundingClientRect();
+                    tooltip.style.left = (rect.left + window.scrollX) + 'px';
+                    tooltip.style.top = (rect.top + window.scrollY - 35) + 'px';
+                    
+                    this.setAttribute('data-tooltip', 'true');
+                });
+                
+                element.addEventListener('mouseleave', function() {
+                    const tooltip = document.querySelector('[data-tooltip="true"] + div');
+                    if (tooltip) tooltip.remove();
+                    this.removeAttribute('data-tooltip');
+                });
+            });
+        }
+    </script>
+</body>
+</html>
